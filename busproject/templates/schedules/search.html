@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Results: {{ from_city }} → {{ to_city }} on {{ date }}</h2>
+<br>
+{% if results %}
+    {% for s in results %}
+    <div class="card">
+        <h3>{{ s.route }}</h3>
+        <p>🚌 Bus: {{ s.bus.bus_number }} ({{ s.bus.bus_type }})</p>
+        <p>🕐 Departure: {{ s.departure_time|date:"d M Y, H:i" }}</p>
+        <p>🕔 Arrival:   {{ s.arrival_time|date:"d M Y, H:i" }}</p>
+        <p>💺 Available Seats: {{ s.available_seats }}</p>
+        <p>💰 Fare: Rs. {{ s.fare }}</p>
+        <br>
+        <a href="/book/{{ s.id }}/" class="btn btn-green">Book Now</a>
+    </div>
+    {% endfor %}
+{% else %}
+    <div class="card">
+        <p>No buses found for this route and date. Try another date!</p>
+    </div>
+{% endif %}
+<br>
+<a href="/" class="btn">← Back to Search</a>
+{% endblock %}

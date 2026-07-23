@@ -1,0 +1,41 @@
+{% extends 'management/base_manage.html' %}
+{% block manage_content %}
+<div class="manage-card">
+    <div class="manage-header">
+        <h2>🕐 {{ action }} Schedule</h2>
+    </div>
+    <form method="POST">
+        {% csrf_token %}
+        <div class="form-group">
+            <label>Route</label>
+            <select name="route" required>
+                {% for route in routes %}
+                <option value="{{ route.id }}" {% if obj.route_id == route.id %}selected{% endif %}>{{ route }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Bus</label>
+            <select name="bus" required>
+                {% for bus in buses %}
+                <option value="{{ bus.id }}" {% if obj.bus_id == bus.id %}selected{% endif %}>{{ bus }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Departure Time</label>
+            <input type="datetime-local" name="departure_time" value="{{ obj.departure_time|date:'Y-m-d\TH:i' }}" required />
+        </div>
+        <div class="form-group">
+            <label>Arrival Time</label>
+            <input type="datetime-local" name="arrival_time" value="{{ obj.arrival_time|date:'Y-m-d\TH:i' }}" required />
+        </div>
+        <div class="form-group">
+            <label>Fare (Rs.)</label>
+            <input type="number" name="fare" value="{{ obj.fare }}" placeholder="e.g. 2500" required />
+        </div>
+        <button type="submit" class="btn-save">💾 Save</button>
+        <a href="/manage/schedules/" class="btn-cancel">Cancel</a>
+    </form>
+</div>
+{% endblock %}

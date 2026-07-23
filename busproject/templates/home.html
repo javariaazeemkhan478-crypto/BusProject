@@ -1,0 +1,290 @@
+﻿{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/home.css' %}">
+
+<nav>
+  <a href="/" class="nav-brand">Pak<span>Bus</span></a>
+  <div class="nav-links">
+    {% if user.is_authenticated %}
+      <a href="/book/my/">My Bookings</a>
+      <a href="/users/logout/" class="nav-cta">Logout</a>
+    {% else %}
+      <a href="/users/login/">Sign In</a>
+      <a href="/users/register/" class="nav-cta">Get Started</a>
+    {% endif %}
+  </div>
+</nav>
+
+<div class="hero">
+  <div class="hero-badge">🚌 Pakistan's Most Trusted Bus Network</div>
+  <h1>Travel Smarter,<br>Arrive <span>Better.</span></h1>
+  <p>Book intercity bus tickets in seconds. Comfortable rides across Pakistan at the best fares.</p>
+
+  <div class="search-box">
+    <form action="/search/" method="GET">
+      <div class="search-field">
+        <label>From</label>
+        <select name="from_city" required>
+          <option value="">Select city</option>
+          {% for city in cities %}
+            <option value="{{ city.name }}">{{ city.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="search-field">
+        <label>To</label>
+        <select name="to_city" required>
+          <option value="">Select city</option>
+          {% for city in cities %}
+            <option value="{{ city.name }}">{{ city.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="search-field">
+        <label>Date</label>
+        <input type="date" name="date" required />
+      </div>
+      <button type="submit" class="search-btn">Search →</button>
+    </form>
+  </div>
+
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-number">50+</div>
+      <div class="stat-label">Routes</div>
+    </div>
+    <div class="stat">
+      <div class="stat-number">200+</div>
+      <div class="stat-label">Daily Buses</div>
+    </div>
+    <div class="stat">
+      <div class="stat-number">1M+</div>
+      <div class="stat-label">Happy Travelers</div>
+    </div>
+    <div class="stat">
+      <div class="stat-number">30+</div>
+      <div class="stat-label">Cities</div>
+    </div>
+  </div>
+</div>
+
+<div class="routes-section">
+  <div class="section-label">Live Schedules</div>
+  <h2 class="section-title">Popular Routes Today</h2>
+  <div class="routes-slider">
+    <div class="routes-track">
+
+      <div class="route-card">
+        <div class="route-header">
+          <span class="route-type">AC Sleeper</span>
+          <div class="route-price">Rs. 2,500 <span>/seat</span></div>
+        </div>
+        <div class="route-cities">
+          <div class="city-name">Lahore</div>
+          <div class="route-arrow">
+            <div class="arrow-line"></div>
+            <div class="arrow-duration">12 hrs</div>
+          </div>
+          <div class="city-name dest">Karachi</div>
+        </div>
+        <div class="route-times">
+          <div class="time-block">
+            <div class="time-label">Departs</div>
+            <div class="time-value">08:00</div>
+            <div class="time-date">Today</div>
+          </div>
+          <div class="seats-badge">
+            <div class="seats-dot"></div>
+            24 seats left
+          </div>
+          <div class="time-block" style="text-align:right;">
+            <div class="time-label">Arrives</div>
+            <div class="time-value">20:00</div>
+            <div class="time-date">Today</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="route-card">
+        <div class="route-header">
+          <span class="route-type">AC Business</span>
+          <div class="route-price">Rs. 1,200 <span>/seat</span></div>
+        </div>
+        <div class="route-cities">
+          <div class="city-name">Islamabad</div>
+          <div class="route-arrow">
+            <div class="arrow-line"></div>
+            <div class="arrow-duration">3.5 hrs</div>
+          </div>
+          <div class="city-name dest">Peshawar</div>
+        </div>
+        <div class="route-times">
+          <div class="time-block">
+            <div class="time-label">Departs</div>
+            <div class="time-value">09:30</div>
+            <div class="time-date">Today</div>
+          </div>
+          <div class="seats-badge">
+            <div class="seats-dot"></div>
+            18 seats left
+          </div>
+          <div class="time-block" style="text-align:right;">
+            <div class="time-label">Arrives</div>
+            <div class="time-value">13:00</div>
+            <div class="time-date">Today</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="route-card">
+        <div class="route-header">
+          <span class="route-type">Non-AC</span>
+          <div class="route-price">Rs. 950 <span>/seat</span></div>
+        </div>
+        <div class="route-cities">
+          <div class="city-name">Multan</div>
+          <div class="route-arrow">
+            <div class="arrow-line"></div>
+            <div class="arrow-duration">5 hrs</div>
+          </div>
+          <div class="city-name dest">Islamabad</div>
+        </div>
+        <div class="route-times">
+          <div class="time-block">
+            <div class="time-label">Departs</div>
+            <div class="time-value">07:00</div>
+            <div class="time-date">Today</div>
+          </div>
+          <div class="seats-badge">
+            <div class="seats-dot"></div>
+            31 seats left
+          </div>
+          <div class="time-block" style="text-align:right;">
+            <div class="time-label">Arrives</div>
+            <div class="time-value">12:00</div>
+            <div class="time-date">Today</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="route-card">
+        <div class="route-header">
+          <span class="route-type">AC Sleeper</span>
+          <div class="route-price">Rs. 3,200 <span>/seat</span></div>
+        </div>
+        <div class="route-cities">
+          <div class="city-name">Karachi</div>
+          <div class="route-arrow">
+            <div class="arrow-line"></div>
+            <div class="arrow-duration">14 hrs</div>
+          </div>
+          <div class="city-name dest">Quetta</div>
+        </div>
+        <div class="route-times">
+          <div class="time-block">
+            <div class="time-label">Departs</div>
+            <div class="time-value">18:00</div>
+            <div class="time-date">Today</div>
+          </div>
+          <div class="seats-badge">
+            <div class="seats-dot"></div>
+            12 seats left
+          </div>
+          <div class="time-block" style="text-align:right;">
+            <div class="time-label">Arrives</div>
+            <div class="time-value">08:00</div>
+            <div class="time-date">Tomorrow</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="route-card">
+        <div class="route-header">
+          <span class="route-type">AC Business</span>
+          <div class="route-price">Rs. 1,800 <span>/seat</span></div>
+        </div>
+        <div class="route-cities">
+          <div class="city-name">Lahore</div>
+          <div class="route-arrow">
+            <div class="arrow-line"></div>
+            <div class="arrow-duration">4 hrs</div>
+          </div>
+          <div class="city-name dest">Islamabad</div>
+        </div>
+        <div class="route-times">
+          <div class="time-block">
+            <div class="time-label">Departs</div>
+            <div class="time-value">11:00</div>
+            <div class="time-date">Today</div>
+          </div>
+          <div class="seats-badge">
+            <div class="seats-dot"></div>
+            8 seats left
+          </div>
+          <div class="time-block" style="text-align:right;">
+            <div class="time-label">Arrives</div>
+            <div class="time-value">15:00</div>
+            <div class="time-date">Today</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="features-section">
+  <div class="section-label">Why PakBus</div>
+  <h2 class="section-title" style="text-align:center;">Travel the Way You Deserve</h2>
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">❄️</div>
+      <div class="feature-title">AC & Sleeper Coaches</div>
+      <div class="feature-desc">Travel in fully air-conditioned coaches with reclining seats, USB charging, and onboard entertainment.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">⚡</div>
+      <div class="feature-title">Instant Booking</div>
+      <div class="feature-desc">Book your seat in under 60 seconds. No queues, no waiting. Instant confirmation guaranteed.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">💺</div>
+      <div class="feature-title">Choose Your Seat</div>
+      <div class="feature-desc">Pick exactly where you sit. Window, aisle, front or back — the choice is always yours.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🛡️</div>
+      <div class="feature-title">Safe & Reliable</div>
+      <div class="feature-desc">GPS-tracked buses with real-time updates so your loved ones always know where you are.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">💰</div>
+      <div class="feature-title">Best Price Guarantee</div>
+      <div class="feature-desc">We match the lowest fare on any route. No hidden fees, no surprises.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔄</div>
+      <div class="feature-title">Easy Cancellation</div>
+      <div class="feature-desc">Plans changed? Cancel anytime from your account with full refund options.</div>
+    </div>
+  </div>
+</div>
+
+<div class="cta-section">
+  <h2>Ready for Your Next Journey?</h2>
+  <p>Join over 1 million Pakistanis who travel smarter with PakBus every day.</p>
+  <div class="cta-btns">
+    <a href="/users/register/" class="btn-primary">Create Free Account</a>
+    <a href="/search/" class="btn-ghost">Browse All Routes</a>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-brand">Pak<span>Bus</span></div>
+  <div>© 2026 PakBus. All rights reserved.</div>
+  <div>Lahore · Karachi · Islamabad · Peshawar</div>
+</footer>
+
+{% endblock %}

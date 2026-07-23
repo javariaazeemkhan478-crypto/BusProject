@@ -1,0 +1,705 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+.manage-wrapper {
+    max-width: 1100px;
+    margin: 30px auto;
+    padding: 0 20px;
+}
+
+.manage-nav {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+    background: white;
+    padding: 16px 20px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    align-items: center;
+}
+
+.manage-nav button {
+    padding: 9px 20px;
+    border-radius: 8px;
+    border: none;
+    font-size: 14px;
+    font-weight: bold;
+    color: #555;
+    background: #f5f5f5;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.manage-nav button:hover,
+.manage-nav button.active {
+    background: #1a73e8;
+    color: white;
+}
+
+.manage-nav a {
+    margin-left: auto;
+    padding: 9px 20px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: bold;
+    color: #555;
+    background: #f5f5f5;
+    transition: all 0.2s;
+}
+
+.manage-nav a:hover { background: #eee; }
+
+/* Stats cards */
+.dash-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.dash-card {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    text-align: center;
+    border-top: 4px solid #1a73e8;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.dash-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
+.dash-card.active { border-top-color: #f5a623; background: #fffbf0; }
+.dash-icon  { font-size: 32px; margin-bottom: 8px; }
+.dash-count { font-size: 40px; font-weight: bold; color: #1a73e8; }
+.dash-label { font-size: 14px; color: #888; margin-top: 4px; }
+
+/* Content area */
+.content-area {
+    background: white;
+    border-radius: 12px;
+    padding: 28px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    min-height: 400px;
+}
+
+.content-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.content-header h2 { font-size: 22px; color: #1a1a2e; }
+
+.btn-add {
+    background: #43a047;
+    color: white;
+    padding: 9px 20px;
+    border-radius: 8px;
+    border: none;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-add:hover { background: #2e7d32; }
+
+/* Table */
+table { width: 100%; border-collapse: collapse; }
+th {
+    background: #1a73e8;
+    color: white;
+    padding: 12px 16px;
+    text-align: left;
+    font-size: 14px;
+}
+td {
+    padding: 12px 16px;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 14px;
+    color: #333;
+}
+tr:hover td { background: #f8f9ff; }
+
+.btn-edit {
+    background: #fff8e1;
+    color: #f57c00;
+    border: 1px solid #ffcc02;
+    padding: 5px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-right: 6px;
+    transition: background 0.2s;
+}
+
+.btn-edit:hover { background: #fff3cd; }
+
+.btn-delete {
+    background: #fdecea;
+    color: #e53935;
+    border: 1px solid #f5c6c5;
+    padding: 5px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-delete:hover { background: #fcd9d8; }
+
+/* Modal */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 999;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-box {
+    background: white;
+    border-radius: 16px;
+    padding: 36px;
+    width: 90%;
+    max-width: 480px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    animation: popIn 0.2s ease;
+}
+
+@keyframes popIn {
+    from { transform: scale(0.85); opacity: 0; }
+    to   { transform: scale(1);    opacity: 1; }
+}
+
+.modal-box h3 {
+    font-size: 20px;
+    color: #1a1a2e;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.form-group { margin-bottom: 16px; }
+
+.form-group label {
+    display: block;
+    font-size: 12px;
+    font-weight: bold;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 11px 14px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+}
+
+.form-group input:focus,
+.form-group select:focus { border-color: #1a73e8; }
+
+.modal-btns {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.btn-save {
+    background: #1a73e8;
+    color: white;
+    padding: 11px 28px;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    flex: 1;
+    transition: background 0.2s;
+}
+
+.btn-save:hover { background: #1558b0; }
+
+.btn-cancel-modal {
+    background: white;
+    color: #555;
+    padding: 11px 20px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 15px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-cancel-modal:hover { background: #f5f5f5; }
+
+/* Delete confirm modal */
+.delete-modal-box {
+    background: white;
+    border-radius: 16px;
+    padding: 36px;
+    width: 90%;
+    max-width: 360px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    text-align: center;
+    animation: popIn 0.2s ease;
+}
+
+.delete-modal-box .del-icon { font-size: 52px; margin-bottom: 12px; }
+.delete-modal-box h3 { font-size: 20px; color: #e53935; margin-bottom: 10px; }
+.delete-modal-box p  { color: #666; font-size: 14px; margin-bottom: 24px; line-height: 1.5; }
+
+.btn-confirm-del {
+    background: #e53935;
+    color: white;
+    padding: 11px 28px;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-right: 10px;
+    transition: background 0.2s;
+}
+
+.btn-confirm-del:hover { background: #b71c1c; }
+
+.loading {
+    text-align: center;
+    padding: 60px;
+    color: #888;
+    font-size: 16px;
+}
+
+.spinner {
+    width: 40px; height: 40px;
+    border: 4px solid #f0f0f0;
+    border-top: 4px solid #1a73e8;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 16px;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 768px) {
+    .dash-grid { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+
+<!-- Form Modal -->
+<div class="modal-overlay" id="formModal">
+    <div class="modal-box">
+        <h3 id="modalTitle">Add</h3>
+        <div id="modalFormContent"></div>
+        <div class="modal-btns">
+            <button class="btn-save" onclick="submitForm()">💾 Save</button>
+            <button class="btn-cancel-modal" onclick="closeModal()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal-overlay" id="deleteModal">
+    <div class="delete-modal-box">
+        <div class="del-icon">⚠️</div>
+        <h3>Confirm Delete</h3>
+        <p id="deleteMsg">Are you sure?</p>
+        <button class="btn-confirm-del" onclick="confirmDelete()">🗑️ Yes, Delete</button>
+        <button class="btn-cancel-modal" onclick="closeDeleteModal()">Cancel</button>
+    </div>
+</div>
+
+<div class="manage-wrapper">
+
+    <!-- Top Nav -->
+    <div class="manage-nav">
+        <button onclick="loadSection('cities')"    id="btn-cities"    class="active">🏙️ Cities</button>
+        <button onclick="loadSection('routes')"    id="btn-routes">🗺️ Routes</button>
+        <button onclick="loadSection('buses')"     id="btn-buses">🚌 Buses</button>
+        <button onclick="loadSection('schedules')" id="btn-schedules">🕐 Schedules</button>
+        <a href="/">← Back to Site</a>
+    </div>
+
+    <!-- Stats -->
+    <div class="dash-grid">
+        <div class="dash-card" onclick="loadSection('cities')" id="card-cities">
+            <div class="dash-icon">🏙️</div>
+            <div class="dash-count" id="count-cities">-</div>
+            <div class="dash-label">Cities</div>
+        </div>
+        <div class="dash-card" onclick="loadSection('routes')" id="card-routes">
+            <div class="dash-icon">🗺️</div>
+            <div class="dash-count" id="count-routes">-</div>
+            <div class="dash-label">Routes</div>
+        </div>
+        <div class="dash-card" onclick="loadSection('buses')" id="card-buses">
+            <div class="dash-icon">🚌</div>
+            <div class="dash-count" id="count-buses">-</div>
+            <div class="dash-label">Buses</div>
+        </div>
+        <div class="dash-card" onclick="loadSection('schedules')" id="card-schedules">
+            <div class="dash-icon">🕐</div>
+            <div class="dash-count" id="count-schedules">-</div>
+            <div class="dash-label">Schedules</div>
+        </div>
+    </div>
+
+    <!-- Dynamic Content Area -->
+    <div class="content-area" id="contentArea">
+        <div class="loading">
+            <div class="spinner"></div>
+            Loading...
+        </div>
+    </div>
+
+</div>
+
+<script>
+var currentSection = 'cities';
+var deleteId       = null;
+var deleteSection  = null;
+var editId         = null;
+
+var csrfToken = '{{ csrf_token }}';
+
+// ── Load section via AJAX ──────────────────────────────
+function loadSection(section) {
+    currentSection = section;
+
+    // Update nav buttons
+    document.querySelectorAll('.manage-nav button').forEach(b => b.classList.remove('active'));
+    document.getElementById('btn-' + section).classList.add('active');
+
+    // Update cards
+    document.querySelectorAll('.dash-card').forEach(c => c.classList.remove('active'));
+    document.getElementById('card-' + section).classList.add('active');
+
+    // Show spinner
+    document.getElementById('contentArea').innerHTML = `
+        <div class="loading">
+            <div class="spinner"></div>
+            Loading ${section}...
+        </div>`;
+
+    // Fetch data
+    fetch('/manage/ajax/' + section + '/')
+        .then(r => r.json())
+        .then(data => {
+            renderSection(section, data);
+            updateCounts();
+        })
+        .catch(() => {
+            document.getElementById('contentArea').innerHTML =
+                '<div class="loading">❌ Error loading data. Please try again.</div>';
+        });
+}
+
+// ── Update all counts ──────────────────────────────────
+function updateCounts() {
+    ['cities','routes','buses','schedules'].forEach(s => {
+        fetch('/manage/ajax/' + s + '/')
+            .then(r => r.json())
+            .then(data => {
+                document.getElementById('count-' + s).innerText = data.count;
+            });
+    });
+}
+
+// ── Render table for each section ─────────────────────
+function renderSection(section, data) {
+    var html = '';
+
+    if (section === 'cities') {
+        html = `
+        <div class="content-header">
+            <h2>🏙️ Cities</h2>
+            <button class="btn-add" onclick="showAddForm('cities')">+ Add City</button>
+        </div>
+        <table>
+            <tr><th>#</th><th>City Name</th><th>Actions</th></tr>
+            ${data.items.map((c, i) => `
+            <tr>
+                <td>${i+1}</td>
+                <td>${c.name}</td>
+                <td>
+                    <button class="btn-edit"   onclick="showEditForm('cities', ${c.id}, '${c.name}')">✏️ Edit</button>
+                    <button class="btn-delete" onclick="showDeleteModal('cities', ${c.id}, '${c.name}')">🗑️ Delete</button>
+                </td>
+            </tr>`).join('')}
+        </table>`;
+
+    } else if (section === 'buses') {
+        html = `
+        <div class="content-header">
+            <h2>🚌 Buses</h2>
+            <button class="btn-add" onclick="showAddForm('buses')">+ Add Bus</button>
+        </div>
+        <table>
+            <tr><th>#</th><th>Bus Number</th><th>Type</th><th>Seats</th><th>Actions</th></tr>
+            ${data.items.map((b, i) => `
+            <tr>
+                <td>${i+1}</td>
+                <td>${b.bus_number}</td>
+                <td>${b.bus_type}</td>
+                <td>${b.total_seats}</td>
+                <td>
+                    <button class="btn-edit"   onclick="showEditForm('buses', ${b.id}, '', '${b.bus_number}', '${b.bus_type}', ${b.total_seats})">✏️ Edit</button>
+                    <button class="btn-delete" onclick="showDeleteModal('buses', ${b.id}, '${b.bus_number}')">🗑️ Delete</button>
+                </td>
+            </tr>`).join('')}
+        </table>`;
+
+    } else if (section === 'routes') {
+        html = `
+        <div class="content-header">
+            <h2>🗺️ Routes</h2>
+            <button class="btn-add" onclick="showAddForm('routes')">+ Add Route</button>
+        </div>
+        <table>
+            <tr><th>#</th><th>From</th><th>To</th><th>Distance</th><th>Actions</th></tr>
+            ${data.items.map((r, i) => `
+            <tr>
+                <td>${i+1}</td>
+                <td>${r.from_city}</td>
+                <td>${r.to_city}</td>
+                <td>${r.distance_km} km</td>
+                <td>
+                    <button class="btn-edit"   onclick="showEditForm('routes', ${r.id}, '', '', '', 0, ${r.from_city_id}, ${r.to_city_id}, ${r.distance_km})">✏️ Edit</button>
+                    <button class="btn-delete" onclick="showDeleteModal('routes', ${r.id}, '${r.from_city} → ${r.to_city}')">🗑️ Delete</button>
+                </td>
+            </tr>`).join('')}
+        </table>`;
+
+    } else if (section === 'schedules') {
+        html = `
+        <div class="content-header">
+            <h2>🕐 Schedules</h2>
+            <button class="btn-add" onclick="showAddForm('schedules')">+ Add Schedule</button>
+        </div>
+        <table>
+            <tr><th>#</th><th>Route</th><th>Bus</th><th>Departure</th><th>Fare</th><th>Actions</th></tr>
+            ${data.items.map((s, i) => `
+            <tr>
+                <td>${i+1}</td>
+                <td>${s.route}</td>
+                <td>${s.bus}</td>
+                <td>${s.departure_time}</td>
+                <td>Rs. ${s.fare}</td>
+                <td>
+                    <button class="btn-edit"   onclick="showEditForm('schedules', ${s.id}, '', '', '', 0, 0, 0, 0, ${s.route_id}, ${s.bus_id}, '${s.departure_time_raw}', '${s.arrival_time_raw}', ${s.fare})">✏️ Edit</button>
+                    <button class="btn-delete" onclick="showDeleteModal('schedules', ${s.id}, '${s.route}')">🗑️ Delete</button>
+                </td>
+            </tr>`).join('')}
+        </table>`;
+    }
+
+    document.getElementById('contentArea').innerHTML = html;
+}
+
+// ── Show Add Form in Modal ─────────────────────────────
+function showAddForm(section) {
+    editId = null;
+    document.getElementById('modalTitle').innerText = 'Add ' + section.charAt(0).toUpperCase() + section.slice(1,-1);
+    buildForm(section, null);
+    document.getElementById('formModal').style.display = 'flex';
+}
+
+// ── Show Edit Form in Modal ────────────────────────────
+function showEditForm(section, id, name, busNum, busType, seats, fromCity, toCity, dist, routeId, busId, depTime, arrTime, fare) {
+    editId = id;
+    document.getElementById('modalTitle').innerText = 'Edit ' + section.charAt(0).toUpperCase() + section.slice(1,-1);
+    var obj = { id, name, busNum, busType, seats, fromCity, toCity, dist, routeId, busId, depTime, arrTime, fare };
+    buildForm(section, obj);
+    document.getElementById('formModal').style.display = 'flex';
+}
+
+// ── Build form HTML ────────────────────────────────────
+function buildForm(section, obj) {
+    var html = '';
+
+    if (section === 'cities') {
+        html = `<div class="form-group">
+            <label>City Name</label>
+            <input type="text" id="f_name" value="${obj ? obj.name : ''}" placeholder="e.g. Lahore" />
+        </div>`;
+
+    } else if (section === 'buses') {
+        html = `
+        <div class="form-group"><label>Bus Number</label>
+            <input type="text" id="f_bus_number" value="${obj && obj.busNum ? obj.busNum : ''}" placeholder="e.g. LHR-001" />
+        </div>
+        <div class="form-group"><label>Total Seats</label>
+            <input type="number" id="f_total_seats" value="${obj && obj.seats ? obj.seats : ''}" placeholder="e.g. 40" />
+        </div>
+        <div class="form-group"><label>Bus Type</label>
+            <select id="f_bus_type">
+                <option value="AC"      ${obj && obj.busType==='AC'      ? 'selected' : ''}>AC</option>
+                <option value="Non-AC"  ${obj && obj.busType==='Non-AC'  ? 'selected' : ''}>Non-AC</option>
+                <option value="Sleeper" ${obj && obj.busType==='Sleeper' ? 'selected' : ''}>Sleeper</option>
+            </select>
+        </div>`;
+
+    } else if (section === 'routes') {
+        fetch('/manage/ajax/cities/')
+            .then(r => r.json())
+            .then(data => {
+                var opts = data.items.map(c =>
+                    `<option value="${c.id}" ${obj && obj.fromCity==c.id ? 'selected':''}>${c.name}</option>`
+                ).join('');
+                var opts2 = data.items.map(c =>
+                    `<option value="${c.id}" ${obj && obj.toCity==c.id ? 'selected':''}>${c.name}</option>`
+                ).join('');
+                document.getElementById('modalFormContent').innerHTML = `
+                <div class="form-group"><label>From City</label><select id="f_from_city">${opts}</select></div>
+                <div class="form-group"><label>To City</label><select id="f_to_city">${opts2}</select></div>
+                <div class="form-group"><label>Distance (km)</label>
+                    <input type="number" id="f_distance_km" value="${obj && obj.dist ? obj.dist : ''}" placeholder="e.g. 1200" />
+                </div>`;
+            });
+        return;
+
+    } else if (section === 'schedules') {
+        Promise.all([
+            fetch('/manage/ajax/routes/').then(r => r.json()),
+            fetch('/manage/ajax/buses/').then(r => r.json())
+        ]).then(([rData, bData]) => {
+            var routeOpts = rData.items.map(r =>
+                `<option value="${r.id}" ${obj && obj.routeId==r.id ? 'selected':''}>${r.from_city} → ${r.to_city}</option>`
+            ).join('');
+            var busOpts = bData.items.map(b =>
+                `<option value="${b.id}" ${obj && obj.busId==b.id ? 'selected':''}>${b.bus_number}</option>`
+            ).join('');
+            document.getElementById('modalFormContent').innerHTML = `
+            <div class="form-group"><label>Route</label><select id="f_route">${routeOpts}</select></div>
+            <div class="form-group"><label>Bus</label><select id="f_bus">${busOpts}</select></div>
+            <div class="form-group"><label>Departure Time</label>
+                <input type="datetime-local" id="f_departure_time" value="${obj && obj.depTime ? obj.depTime : ''}" />
+            </div>
+            <div class="form-group"><label>Arrival Time</label>
+                <input type="datetime-local" id="f_arrival_time" value="${obj && obj.arrTime ? obj.arrTime : ''}" />
+            </div>
+            <div class="form-group"><label>Fare (Rs.)</label>
+                <input type="number" id="f_fare" value="${obj && obj.fare ? obj.fare : ''}" placeholder="e.g. 2500" />
+            </div>`;
+        });
+        return;
+    }
+
+    document.getElementById('modalFormContent').innerHTML = html;
+}
+
+// ── Submit form via AJAX ───────────────────────────────
+function submitForm() {
+    var section = currentSection;
+    var data    = {};
+
+    if (section === 'cities') {
+        data = { name: document.getElementById('f_name').value };
+
+    } else if (section === 'buses') {
+        data = {
+            bus_number:  document.getElementById('f_bus_number').value,
+            total_seats: document.getElementById('f_total_seats').value,
+            bus_type:    document.getElementById('f_bus_type').value,
+        };
+
+    } else if (section === 'routes') {
+        data = {
+            from_city:   document.getElementById('f_from_city').value,
+            to_city:     document.getElementById('f_to_city').value,
+            distance_km: document.getElementById('f_distance_km').value,
+        };
+
+    } else if (section === 'schedules') {
+        data = {
+            route:          document.getElementById('f_route').value,
+            bus:            document.getElementById('f_bus').value,
+            departure_time: document.getElementById('f_departure_time').value,
+            arrival_time:   document.getElementById('f_arrival_time').value,
+            fare:           document.getElementById('f_fare').value,
+        };
+    }
+
+    var url = editId
+        ? '/manage/ajax/' + section + '/edit/' + editId + '/'
+        : '/manage/ajax/' + section + '/create/';
+
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken':  csrfToken
+        },
+        body: JSON.stringify(data)
+    })
+    .then(r => r.json())
+    .then(res => {
+        if (res.success) {
+            closeModal();
+            loadSection(section);
+        } else {
+            alert('Error: ' + (res.error || 'Something went wrong'));
+        }
+    });
+}
+
+// ── Delete modal ───────────────────────────────────────
+function showDeleteModal(section, id, name) {
+    deleteId      = id;
+    deleteSection = section;
+    document.getElementById('deleteMsg').innerHTML =
+        'Are you sure you want to delete <strong>' + name + '</strong>?<br><span style="color:#e53935;">This cannot be undone.</span>';
+    document.getElementById('deleteModal').style.display = 'flex';
+}
+
+function confirmDelete() {
+    fetch('/manage/ajax/' + deleteSection + '/delete/' + deleteId + '/', {
+        method: 'POST',
+        headers: { 'X-CSRFToken': csrfToken }
+    })
+    .then(r => r.json())
+    .then(res => {
+        if (res.success) {
+            closeDeleteModal();
+            loadSection(deleteSection);
+        }
+    });
+}
+
+function closeModal()       { document.getElementById('formModal').style.display   = 'none'; }
+function closeDeleteModal() { document.getElementById('deleteModal').style.display = 'none'; }
+
+// Close on overlay click
+document.getElementById('formModal').addEventListener('click',   function(e) { if(e.target===this) closeModal(); });
+document.getElementById('deleteModal').addEventListener('click',  function(e) { if(e.target===this) closeDeleteModal(); });
+
+// Load cities on page load
+window.onload = function() {
+    loadSection('cities');
+    updateCounts();
+};
+</script>
+
+{% endblock %}

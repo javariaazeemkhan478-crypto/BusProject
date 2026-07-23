@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>My Bookings</h2><br>
+{% if bookings %}
+    {% for b in bookings %}
+    <div class="card">
+        <h3>{{ b.schedule.route }}</h3>
+        <p>🚌 Bus: {{ b.schedule.bus.bus_number }}</p>
+        <p>🕐 Departure: {{ b.schedule.departure_time|date:"d M Y, H:i" }}</p>
+        <p>💺 Seat: {{ b.seat_number }}</p>
+        <p>💰 Fare: Rs. {{ b.schedule.fare }}</p>
+        <p>Status:
+            {% if b.status == 'confirmed' %}
+                <span style="color:green;">✅ Confirmed</span>
+            {% else %}
+                <span style="color:red;">❌ Cancelled</span>
+            {% endif %}
+        </p>
+        {% if b.status == 'confirmed' %}
+        <br>
+        <a href="/book/cancel/{{ b.id }}/" class="btn btn-red">Cancel Booking</a>
+        {% endif %}
+    </div>
+    {% endfor %}
+{% else %}
+    <div class="card"><p>No bookings yet. <a href="/">Search for buses</a></p></div>
+{% endif %}
+{% endblock %}

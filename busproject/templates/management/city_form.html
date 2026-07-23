@@ -1,0 +1,17 @@
+{% extends 'management/base_manage.html' %}
+{% block manage_content %}
+<div class="manage-card">
+    <div class="manage-header">
+        <h2>🏙️ {{ action }} City</h2>
+    </div>
+    <form method="POST">
+        {% csrf_token %}
+        <div class="form-group">
+            <label>City Name</label>
+            <input type="text" name="name" value="{{ obj.name }}" placeholder="e.g. Lahore" required />
+        </div>
+        <button type="submit" class="btn-save">💾 Save</button>
+        <a href="/manage/cities/" class="btn-cancel">Cancel</a>
+    </form>
+</div>
+{% endblock %}

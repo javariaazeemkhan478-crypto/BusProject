@@ -1,0 +1,490 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+<style>
+.book-wrapper {
+    max-width: 850px;
+    margin: 40px auto;
+    padding: 0 20px;
+}
+
+.book-header {
+    background: linear-gradient(135deg, #1a73e8, #0d47a1);
+    border-radius: 16px 16px 0 0;
+    padding: 30px;
+    color: white;
+}
+
+.book-header h2 { font-size: 26px; font-weight: bold; margin-bottom: 10px; }
+.book-header p { font-size: 15px; opacity: 0.85; margin-bottom: 4px; }
+
+.book-body {
+    background: white;
+    border-radius: 0 0 16px 16px;
+    padding: 30px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+
+.legend {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: #555;
+}
+
+.legend-dot { width: 20px; height: 20px; border-radius: 4px; }
+.dot-available { background: #43a047; }
+.dot-booked    { background: #e53935; }
+.dot-selected  { background: #1a73e8; }
+
+.seat-section-title {
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.seat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+    gap: 10px;
+    margin-bottom: 24px;
+}
+
+.seat {
+    aspect-ratio: 1;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: bold;
+    color: white;
+    cursor: pointer;
+    user-select: none;
+    transition: transform 0.15s, box-shadow 0.15s;
+    border: 2px solid transparent;
+}
+
+.seat:hover { transform: scale(1.08); }
+
+.seat.available {
+    background: #43a047;
+    box-shadow: 0 2px 6px rgba(67,160,71,0.3);
+}
+
+.seat.available:hover {
+    box-shadow: 0 4px 12px rgba(67,160,71,0.5);
+}
+
+.seat.booked {
+    background: #e53935;
+    cursor: not-allowed;
+    opacity: 0.8;
+}
+
+.seat.selected {
+    background: #1a73e8;
+    transform: scale(1.1);
+    border: 2px solid #0d47a1;
+    box-shadow: 0 4px 16px rgba(26,115,232,0.5);
+}
+
+.seat-icon { font-size: 16px; }
+.seat-num  { font-size: 11px; margin-top: 2px; }
+
+.booking-summary {
+    background: #f8f9ff;
+    border: 2px solid #e8edff;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 24px;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.summary-text  { font-size: 15px; color: #555; margin-bottom: 4px; }
+.summary-value { font-size: 22px; font-weight: bold; color: #1a73e8; }
+
+.selected-seats-list {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #e0e8ff;
+    font-size: 14px;
+    color: #333;
+}
+
+.seat-tag {
+    display: inline-block;
+    background: #1a73e8;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin: 3px;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+.multi-badge {
+    display: inline-block;
+    background: #e8f5e9;
+    color: #2e7d32;
+    border: 1px solid #a5d6a7;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: bold;
+    margin-bottom: 16px;
+}
+
+.btn-confirm {
+    background: linear-gradient(135deg, #1a73e8, #0d47a1);
+    color: white;
+    padding: 14px 40px;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 12px rgba(26,115,232,0.3);
+    width: 100%;
+}
+
+.btn-confirm:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(26,115,232,0.4);
+}
+
+.btn-confirm:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+}
+
+/* ── Popups ── */
+.popup-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.6);
+    z-index: 999;
+    justify-content: center;
+    align-items: center;
+}
+
+.popup-box {
+    background: white;
+    padding: 36px;
+    border-radius: 16px;
+    text-align: center;
+    max-width: 340px;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    animation: popIn 0.2s ease;
+}
+
+@keyframes popIn {
+    from { transform: scale(0.8); opacity: 0; }
+    to   { transform: scale(1);   opacity: 1; }
+}
+
+.popup-icon  { font-size: 48px; margin-bottom: 12px; }
+.popup-box h3 { font-size: 20px; margin-bottom: 10px; color: #1a73e8; }
+.popup-box p  { color: #666; font-size: 14px; margin-bottom: 24px; line-height: 1.5; }
+
+.popup-btns {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+.btn-yes {
+    background: #1a73e8;
+    color: white;
+    padding: 11px 32px;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s;
+    flex: 1;
+}
+
+.btn-yes:hover { background: #1558b0; }
+
+.btn-no {
+    background: white;
+    color: #e53935;
+    padding: 11px 32px;
+    border: 2px solid #e53935;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex: 1;
+}
+
+.btn-no:hover { background: #fdecea; }
+
+.btn-reserved {
+    background: #1a73e8;
+    color: white;
+    padding: 10px 32px;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-reserved:hover { background: #1558b0; }
+
+@media (max-width: 600px) {
+    .seat-grid { grid-template-columns: repeat(auto-fill, minmax(50px, 1fr)); }
+    .book-header, .book-body { padding: 20px; }
+}
+</style>
+
+<!-- Reserved Seat Popup -->
+<div id="popupReserved" class="popup-overlay">
+    <div class="popup-box">
+        <div class="popup-icon">🚫</div>
+        <h3 style="color:#e53935;">Seat Already Taken!</h3>
+        <p>This seat has been reserved by another passenger. Please choose a different seat.</p>
+        <button onclick="closeReserved()" class="btn-reserved">Choose Another</button>
+    </div>
+</div>
+
+<!-- Multiple Seats Popup -->
+<div id="popupMulti" class="popup-overlay">
+    <div class="popup-box">
+        <div class="popup-icon">🪑🪑</div>
+        <h3>Book Multiple Seats?</h3>
+        <p>You already selected a seat. Would you like to book <strong>multiple seats</strong> in one booking?</p>
+        <div class="popup-btns">
+            <button onclick="allowMulti()" class="btn-yes">✅ Yes</button>
+            <button onclick="denyMulti()"  class="btn-no">❌ No</button>
+        </div>
+    </div>
+</div>
+
+<div class="book-wrapper">
+
+    <!-- Header -->
+    <div class="book-header">
+        <h2>🚌 {{ schedule.route }}</h2>
+        <p>🕐 Departure: {{ schedule.departure_time|date:"d M Y, H:i" }}</p>
+        <p>🕔 Arrival:   {{ schedule.arrival_time|date:"d M Y, H:i" }}</p>
+        <p>💰 Fare per seat: Rs. {{ schedule.fare }}</p>
+    </div>
+
+    <!-- Body -->
+    <div class="book-body">
+
+        <div id="multiBadge" style="display:none;">
+            <div class="multi-badge">✅ Multi-seat mode ON — select as many seats as you want</div>
+        </div>
+
+        <!-- Legend -->
+        <div class="legend">
+            <div class="legend-item"><div class="legend-dot dot-available"></div> Available</div>
+            <div class="legend-item"><div class="legend-dot dot-booked"></div> Booked</div>
+            <div class="legend-item"><div class="legend-dot dot-selected"></div> Your Selection</div>
+        </div>
+
+        <div class="seat-section-title">🪑 Select Your Seat</div>
+
+        <!-- Seat Grid -->
+        <div class="seat-grid">
+            {% for seat in all_seats %}
+                {% if seat in booked_seats %}
+                    <div class="seat booked" onclick="showReserved()">
+                        <span class="seat-icon">❌</span>
+                        <span class="seat-num">{{ seat }}</span>
+                    </div>
+                {% else %}
+                    <div class="seat available" onclick="selectSeat({{ seat }}, this)">
+                        <span class="seat-icon">💺</span>
+                        <span class="seat-num">{{ seat }}</span>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+        <!-- Booking Summary -->
+        <div class="booking-summary">
+            <div class="summary-row">
+                <div>
+                    <div class="summary-text">Selected Seats</div>
+                    <div class="summary-value" id="seatCountDisplay">None</div>
+                </div>
+                <div style="text-align:right;">
+                    <div class="summary-text">Total Fare</div>
+                    <div class="summary-value" id="totalFare">Rs. 0</div>
+                </div>
+            </div>
+            <div class="selected-seats-list" id="seatTagsContainer"></div>
+        </div>
+
+        <!-- Hidden inputs + Form -->
+        <form method="POST" id="bookingForm">
+            {% csrf_token %}
+            <div id="hiddenInputs"></div>
+            <button type="submit" class="btn-confirm" id="confirmBtn" disabled>
+                🎟️ Confirm Booking
+            </button>
+        </form>
+
+    </div>
+</div>
+
+<script>
+    var farePerSeat   = {{ schedule.fare }};
+    var multiMode     = false;
+    var selectedSeats = [];
+    var pendingSeat   = null;
+    var pendingEl     = null;
+
+    function showReserved() {
+        document.getElementById('popupReserved').style.display = 'flex';
+    }
+
+    function closeReserved() {
+        document.getElementById('popupReserved').style.display = 'none';
+    }
+
+    function selectSeat(seatNumber, element) {
+        // Already selected — deselect it
+        var idx = selectedSeats.indexOf(seatNumber);
+        if (idx !== -1) {
+            selectedSeats.splice(idx, 1);
+            element.classList.remove('selected');
+            element.classList.add('available');
+            element.querySelector('.seat-icon').innerText = '💺';
+            updateSummary();
+            return;
+        }
+
+        // First seat — just select it
+        if (selectedSeats.length === 0) {
+            selectedSeats.push(seatNumber);
+            element.classList.remove('available');
+            element.classList.add('selected');
+            element.querySelector('.seat-icon').innerText = '✅';
+            updateSummary();
+            return;
+        }
+
+        // Second seat — ask multi or not
+        if (!multiMode) {
+            pendingSeat = seatNumber;
+            pendingEl   = element;
+            document.getElementById('popupMulti').style.display = 'flex';
+            return;
+        }
+
+        // Multi mode ON — just add
+        selectedSeats.push(seatNumber);
+        element.classList.remove('available');
+        element.classList.add('selected');
+        element.querySelector('.seat-icon').innerText = '✅';
+        updateSummary();
+    }
+
+    function allowMulti() {
+        multiMode = true;
+        document.getElementById('popupMulti').style.display = 'none';
+        document.getElementById('multiBadge').style.display = 'block';
+
+        if (pendingSeat !== null) {
+            selectedSeats.push(pendingSeat);
+            pendingEl.classList.remove('available');
+            pendingEl.classList.add('selected');
+            pendingEl.querySelector('.seat-icon').innerText = '✅';
+            pendingSeat = null;
+            pendingEl   = null;
+        }
+        updateSummary();
+    }
+
+    function denyMulti() {
+        multiMode = false;
+        document.getElementById('popupMulti').style.display = 'none';
+        pendingSeat = null;
+        pendingEl   = null;
+    }
+
+    function updateSummary() {
+        var count     = selectedSeats.length;
+        var total     = count * farePerSeat;
+        var countEl   = document.getElementById('seatCountDisplay');
+        var fareEl    = document.getElementById('totalFare');
+        var tagsEl    = document.getElementById('seatTagsContainer');
+        var confirmBtn = document.getElementById('confirmBtn');
+        var inputsEl  = document.getElementById('hiddenInputs');
+
+        countEl.innerText = count > 0 ? count + ' seat' + (count > 1 ? 's' : '') : 'None';
+        fareEl.innerText  = 'Rs. ' + total.toLocaleString();
+
+        // Seat tags
+        tagsEl.innerHTML = '';
+        selectedSeats.forEach(function(s) {
+            var tag = document.createElement('span');
+            tag.className   = 'seat-tag';
+            tag.innerText   = 'Seat ' + s;
+            tagsEl.appendChild(tag);
+        });
+
+        // Hidden inputs for form
+        inputsEl.innerHTML = '';
+        selectedSeats.forEach(function(s) {
+            var inp = document.createElement('input');
+            inp.type  = 'hidden';
+            inp.name  = 'seat_number';
+            inp.value = s;
+            inputsEl.appendChild(inp);
+        });
+
+        // Enable/disable confirm
+        if (count > 0) {
+            confirmBtn.removeAttribute('disabled');
+        } else {
+            confirmBtn.setAttribute('disabled', true);
+        }
+    }
+
+    // Close popups on overlay click
+    document.getElementById('popupReserved').addEventListener('click', function(e) {
+        if (e.target === this) closeReserved();
+    });
+    document.getElementById('popupMulti').addEventListener('click', function(e) {
+        if (e.target === this) denyMulti();
+    });
+</script>
+
+{% endblock %}
