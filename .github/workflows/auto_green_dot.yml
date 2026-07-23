@@ -1,0 +1,29 @@
+name: Auto Green Dot Streak
+
+on:
+  schedule:
+    - cron: '0 0,6,12,18 * * *' # Runs 4 times a day to ensure dark green dots
+  workflow_dispatch: # Allows you to manually trigger it from the Actions tab
+
+jobs:
+  auto_commit:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Make a change to create a commit
+        run: |
+          # Appends the current date and time to a hidden log file to register a change
+          echo "Automated commit ran at $(date)" >> .green_dot_log.txt
+          
+      - name: Commit and Push Changes
+        run: |
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add .green_dot_log.txt
+          git commit -m "Automated green dot commit 🟢" || echo "No changes to commit"
+          git push
